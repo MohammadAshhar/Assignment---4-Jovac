@@ -1,0 +1,48 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (confusion_matrix,precision_recall_fscore_support,roc_curve,auc,f1_score)
+
+
+data = load_breast_cancer(as_frame=True)
+df = data.frame
+X = df[data.feature_names]
+y = df['target'] 
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+model = LogisticRegression(max_iter=10000)
+model.fit(X_train, y_train)
+
+y_prob = model.predict_proba(X_test)[:, 1]  # probability of positive class (benign)
+
+thresholds = [0.3, 0.5, 0.7]
+results = []
+for t in thresholds:
+    y_pred_t = (y_prob >= t).astype(int)
+    cm = confusion_matrix(y_test, y_pred_t)
+    f1 = f1_score(y_test, y_pred_t)
+    results.append((t, cm, f1))
+    print(f"Threshold = {t}")
+    print("Confusion Matrix:")
+    print(cm)
+    print(f"F1-score: {f1:.4f}\n")
+
+fpr, tpr, roc_thresholds = roc_curve(y_test, y_prob)
+j_scores = tpr - fpr
+idx = np.argmax(j_scores)
+opt_thresh = roc_thresholds[idx]
+roc_auc = auc(fpr, tpr)
+
+plt.figure(figsize=(6, 5))
+plt.plot(fpr, tpr, label=f"ROC curve (AUC = {roc_auc:.2f})")
+plt.scatter(fpr[idx], tpr[idx], color='red',label=f"Optimal thresh = {opt_thresh:.2f}")
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Task 6: ROC Curve with Optimal Threshold')
+plt.legend()
+plt.show()
