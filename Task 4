@@ -1,0 +1,28 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import fetch_california_housing
+
+housing = fetch_california_housing(as_frame=True)
+df = housing.frame
+
+features = ['MedInc', 'AveRooms', 'HouseAge', 'AveOccup']
+target = 'MedHouseVal'
+
+data = df[features + [target]]
+
+corr = data.corr()
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Task 4: Feature Correlation Matrix')
+plt.show()
+
+print("Task 4: Feature Correlations with Target (absolute values):")
+print(corr[target].abs().sort_values(ascending=False))
+
+print("\nDiscussion on Multicollinearity:")
+print("- Multicollinearity arises when independent features are highly correlated with each other.")
+print("- It can inflate coefficient variances, making estimates unstable and interpretation unreliable.")
+print("- To detect: compute Variance Inflation Factor (VIF) for each feature.")
+print("- To mitigate: remove or combine correlated features, or use regularization techniques (e.g., Ridge/Lasso).")
